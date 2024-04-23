@@ -92,7 +92,6 @@ export function Form({
               }}
               name='format'
               options={[
-                { label: 'JSON', value: 'json' },
                 {
                   label: 'CSV',
                   value: 'csv'

@@ -13,6 +13,8 @@ import {
 
 import { initialValues, initialState } from './data'
 import { reducer } from './reducer'
+import { useTokenProvider } from '@commercelayer/app-elements'
+import { type TokenProviderAuthUser } from '@commercelayer/app-elements/dist/providers/TokenProvider/types'
 
 interface ListExportProviderProps {
   /**
@@ -39,6 +41,8 @@ export function ListExportProvider({
   pageSize,
   sdkClient
 }: ListExportProviderProps): JSX.Element {
+  const { user } = useTokenProvider()
+
   const [state, dispatch] = useReducer(reducer, initialState)
   const intervalId = useRef<number | null>(null)
 
@@ -50,7 +54,8 @@ export function ListExportProvider({
     const list = await getAllExports({
       cl: sdkClient,
       state,
-      pageSize
+      pageSize,
+      user
     })
     dispatch({ type: 'loadData', payload: list })
   }, [state.currentPage])
@@ -109,15 +114,20 @@ export function ListExportProvider({
 const getAllExports = async ({
   cl,
   state,
-  pageSize
+  pageSize,
+  user
 }: {
   cl: CommerceLayerClient
   state: ListExportContextState
   pageSize: number
+  user: TokenProviderAuthUser | null
 }): Promise<ListResponse<Export>> => {
   return await cl.exports.list({
     pageNumber: state.currentPage,
     pageSize,
-    sort: { created_at: 'desc' }
+    sort: { created_at: 'desc' },
+    filters: {
+      reference_eq: user?.email ?? ''
+    }
   })
 }
