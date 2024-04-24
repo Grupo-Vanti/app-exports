@@ -127,7 +127,7 @@ const getAllExports = async ({
     pageSize,
     sort: { created_at: 'desc' },
     filters: {
-      reference_eq: user?.email ?? ''
+      metadata_jcont: { email: user?.email ?? '' }
     }
   })
 }

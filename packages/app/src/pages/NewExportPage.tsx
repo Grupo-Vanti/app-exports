@@ -87,7 +87,7 @@ const NewExportPage = (): JSX.Element | null => {
         includes: values.includes,
         format: values.format,
         filters,
-        reference: user?.email ?? ''
+        metadata: { email: user?.email ?? '' }
       })
       setLocation(appRoutes.list.makePath())
     } catch (error) {
