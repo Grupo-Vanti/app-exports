@@ -16,7 +16,7 @@ createApp(
     <StrictMode>
       <ErrorBoundary hasContainer>
         <TokenProvider
-          kind='exports'
+          kind='webapp'
           appSlug='exports'
           devMode={isDev}
           reauthenticateOnInvalidAuth={!isDev && props?.onInvalidAuth == null}
