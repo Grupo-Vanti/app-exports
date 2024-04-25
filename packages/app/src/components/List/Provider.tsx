@@ -42,7 +42,6 @@ export function ListExportProvider({
   sdkClient
 }: ListExportProviderProps): JSX.Element {
   const { user } = useTokenProvider()
-
   const [state, dispatch] = useReducer(reducer, initialState)
   const intervalId = useRef<number | null>(null)
 

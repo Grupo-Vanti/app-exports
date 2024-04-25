@@ -32,8 +32,6 @@ function ListPage(): JSX.Element {
     <HomePageLayout title='Exports'>
       <ListExportProvider sdkClient={sdkClient} pageSize={25}>
         {({ state, changePage }) => {
-          console.log('The state is:', state)
-
           const { isLoading, currentPage, list } = state
 
           if (isLoading) {

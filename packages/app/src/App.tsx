@@ -13,11 +13,9 @@ interface AppProps {
 }
 
 export const App: FC<AppProps> = ({ routerBase }) => {
-  const { organization, settings, user } = useTokenProvider()
+  const { user } = useTokenProvider()
 
-  console.log('The organization is:', organization)
-  console.log('The settings are:', settings)
-  console.log('The user is:', user)
+  console.info('The user is:', user)
 
   return (
     <Router base={routerBase}>
