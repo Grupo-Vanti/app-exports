@@ -6,17 +6,12 @@ import { ResourceSelectorPage } from './pages/ResourceSelectorPage'
 import DetailsPage from './pages/DetailsPage'
 import NewExportPage from './pages/NewExportPage'
 import { type FC } from 'react'
-import { useTokenProvider } from '@commercelayer/app-elements'
 
 interface AppProps {
   routerBase?: string
 }
 
 export const App: FC<AppProps> = ({ routerBase }) => {
-  const { user } = useTokenProvider()
-
-  console.info('The user is:', user)
-
   return (
     <Router base={routerBase}>
       <Switch>

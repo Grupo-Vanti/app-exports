@@ -16,8 +16,8 @@ import {
   useTokenProvider
 } from '@commercelayer/app-elements'
 import { type ApiError } from 'App'
-import { type ExportFormValues } from 'AppForm'
-import { useState } from 'react'
+import { type ExportFormValues, type AllFilters } from 'AppForm'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useRoute } from 'wouter'
 
 const NewExportPage = (): JSX.Element | null => {
@@ -31,12 +31,17 @@ const NewExportPage = (): JSX.Element | null => {
   const [_match, params] = useRoute<{ resourceType?: string }>(
     appRoutes.newExport.path
   )
+  const defaultValues: ExportFormValues = {
+    dryData: true,
+    format: 'csv',
+    includes: []
+  }
   const [_location, setLocation] = useLocation()
-
   const [apiError, setApiError] = useState<ApiError[] | undefined>()
   const [isLoading, setIsLoading] = useState(false)
-
+  const [shippingCategoryId, setShippingCategoryId] = useState<string>()
   const resourceType = params?.resourceType
+
   if (!isAvailableResource(resourceType)) {
     return <PageError errorName='Invalid resource' errorDescription='' />
   }
@@ -45,30 +50,50 @@ const NewExportPage = (): JSX.Element | null => {
     return <PageSkeleton hasHeaderDescription />
   }
 
-  if (!canUser('create', 'exports')) {
-    return (
-      <PageLayout
-        title='Exports'
-        mode={mode}
-        navigationButton={{
-          label: 'Back',
-          icon: 'arrowLeft',
-          onClick: () => {
-            setLocation(appRoutes.list.makePath())
+  useEffect(() => {
+    const shipingCategoryProcess = async (): Promise<void> => {
+      const list = await sdkClient.shipping_categories.list({
+        sort: { created_at: 'desc' },
+        filters: {
+          metadata_jcont: {
+            domain: user?.email?.split('@')?.[1] ?? ''
           }
-        }}
-      >
-        <EmptyState
-          title='You are not authorized'
-          action={
-            <Link href={appRoutes.list.makePath()}>
-              <Button variant='primary'>Go back</Button>
-            </Link>
-          }
-        />
-      </PageLayout>
-    )
-  }
+        }
+      })
+      setShippingCategoryId(list?.[0]?.id ?? null)
+    }
+
+    void shipingCategoryProcess()
+  }, [])
+
+  const getDefaultValues = useCallback((): ExportFormValues => {
+    if (shippingCategoryId !== null && shippingCategoryId !== undefined) {
+      let categoryfilter: AllFilters | null = null
+
+      if (resourceType === 'skus') {
+        categoryfilter = {
+          shipping_category_id_eq: shippingCategoryId
+        }
+      }
+
+      if (resourceType === 'prices') {
+        categoryfilter = {
+          sku_shipping_category_id_eq: shippingCategoryId
+        }
+      }
+
+      if (resourceType === 'stock_items') {
+        categoryfilter = {
+          sku_shipping_category_id_eq: shippingCategoryId
+        }
+      }
+
+      if (categoryfilter != null) {
+        return { ...defaultValues, filters: categoryfilter }
+      }
+    }
+    return defaultValues
+  }, [shippingCategoryId])
 
   const createExportTask = async (values: ExportFormValues): Promise<void> => {
     setApiError(undefined)
@@ -98,6 +123,35 @@ const NewExportPage = (): JSX.Element | null => {
 
   const hasApiError = apiError != null && apiError.length > 0
 
+  if (shippingCategoryId === undefined) {
+    return <PageSkeleton hasHeaderDescription />
+  }
+
+  if (!canUser('create', 'exports') || shippingCategoryId === null) {
+    return (
+      <PageLayout
+        title='Exports'
+        mode={mode}
+        navigationButton={{
+          label: 'Back',
+          icon: 'arrowLeft',
+          onClick: () => {
+            setLocation(appRoutes.list.makePath())
+          }
+        }}
+      >
+        <EmptyState
+          title='You are not authorized'
+          action={
+            <Link href={appRoutes.list.makePath()}>
+              <Button variant='primary'>Go back</Button>
+            </Link>
+          }
+        />
+      </PageLayout>
+    )
+  }
+
   return (
     <PageLayout
       title={`Export ${showResourceNiceName(resourceType).toLowerCase()}`}
@@ -115,11 +169,7 @@ const NewExportPage = (): JSX.Element | null => {
         <Form
           resourceType={resourceType}
           isLoading={isLoading}
-          defaultValues={{
-            dryData: true,
-            format: 'csv',
-            includes: []
-          }}
+          defaultValues={getDefaultValues()}
           onSubmit={(values) => {
             void createExportTask(values)
           }}

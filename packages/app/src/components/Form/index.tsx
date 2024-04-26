@@ -4,8 +4,6 @@ import { showResourceNiceName } from '#data/resources'
 import {
   Spacer,
   Button,
-  Tabs,
-  Tab,
   ListItem,
   HookedInputSimpleSelect,
   HookedInputSwitch,
@@ -13,10 +11,7 @@ import {
   HookedForm
 } from '@commercelayer/app-elements'
 import { RelationshipSelector } from './RelationshipSelector'
-import { Filters } from '#components/Form/Filters'
-import { resourcesWithFilters } from '#components/Form/Filters/index'
-import { InputCode } from '#components/Form/Filters/InputCode'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 interface Props {
   resourceType: AllowedResourceType
@@ -37,35 +32,6 @@ export function Form({
 
   return (
     <HookedForm {...methods} onSubmit={onSubmit}>
-      <Spacer bottom='6'>
-        <Tabs keepAlive>
-          {resourcesWithFilters.includes(resourceType) ? (
-            <Tab name='Filters'>
-              <Controller
-                name='filters'
-                control={methods.control}
-                render={({ field: { onChange } }) => (
-                  <Filters resourceType={resourceType} onChange={onChange} />
-                )}
-              />
-            </Tab>
-          ) : null}
-          <Tab name='Custom rules'>
-            <Controller
-              name='filters'
-              control={methods.control}
-              render={({ field: { onChange } }) => (
-                <InputCode
-                  onDataReady={onChange}
-                  onDataResetRequest={() => {
-                    onChange(undefined)
-                  }}
-                />
-              )}
-            />
-          </Tab>
-        </Tabs>
-      </Spacer>
       <Spacer bottom='14'>
         <RelationshipSelector resourceType={resourceType} />
       </Spacer>
@@ -95,6 +61,10 @@ export function Form({
                 {
                   label: 'CSV',
                   value: 'csv'
+                },
+                {
+                  label: 'JSON',
+                  value: 'json'
                 }
               ]}
               inline
